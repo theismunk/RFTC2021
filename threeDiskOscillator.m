@@ -1,6 +1,10 @@
 clear all;
 close all;
 clc;
+%%
+addpath('./Data')
+addpath('./Models')
+
 load('ECP_values.mat');
 % Physical system parameters
 J_1 = ECP_values(1);            % Disk 1 inertia kgm^2
