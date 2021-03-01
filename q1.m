@@ -95,10 +95,10 @@ ST_sys =...
 
 sa_disp(ST_sys);
 
-ST_sys=sa_match(ST_sys,'mso');
+ST_sys=sa_match(ST_sys,'rank');
 
 % Autogenerate pdf report - requires LaTeX to be installed
-sa_report(ST_sys,'q1_mso','pdf',true);
+sa_report(ST_sys,'q1_rank','pdf',true);
 disp('A report has been generated with the following results:')
 
 disp('Obtained matching:');
