@@ -26,27 +26,47 @@ T_s = 0.004;                    % Sampling period
 sigma_meas = 0.0093*eye(3);     % Measurements covariance matrix
 
 %% State space representation
-A = [ ];
-B = [ ];
-C = [ ];
-D = [ ];
-E_x = [ ];
-E_y = [ ];
-F_x = [ ];
-F_y = [ ];
+A = [0, 1, 0, 0, 0, 0; 
+    -k_1/J_1, -b_1/J_1, k_1/J_1, 0, 0, 0; 
+    0,0,0, 1,0,0; 
+    k_1/J_2, 0, -(k_1 + k_2)/J_2, -b_2/J_2, k_2/J_2, 0; 
+    0,0,0,0,0,1; 
+    0,0, k_2/J_3, 0, -k_2/J_3, -b_3/J_3];
+
+B = [0,0;
+    1/J_1, 0; 
+    0,0; 
+    0,1/J_2; 
+    zeros(2)];
+
+C = [1, zeros(1,5); 0,0,1,zeros(1,3); zeros(1,4), 1, 0]; 
+D = zeros(3,2); 
+Ex = [0; -1/J_1; zeros(4,1)]; 
+Ey = zeros(3,1);
+Fx = [0,     0, 0, 0, 0;
+    1/J_1,     0, 0, 0, 0;
+    0,     0, 0, 0, 0;
+    0, 1/J_2, 0, 0, 0;
+    0,     0, 0, 0, 0;
+    0,     0, 0, 0, 0];
+Fy = [0,0,1,0,0;
+       0,0,0,1,0;
+       0,0,0,0,1];
 
 % Discrete time
-sys_d = [];
+
+sys = ss(A, [B, Ex, Fx], C, [D, Ey, Fy]);
+sys_d = c2d(sys,T_s, 'tustin');
 F_d = sys_d.A;
-G_d = sys_d.B;
+G_d = sys_d.B(:,1:2);
 
 % State-feedback LQR design
 Q_c = diag([2 0 2 0 2.5 0.0024]);
 R_c = diag([10 10]);
-K_c = [];
+K_c = dlqr(F_d,G_d,Q_c,R_c);
 
 % Scaling of reference
-C_ref = [];
+C_ref = pinv(C(3,:) * inv(eye(6) - F_d + G_d * K_c) * G_d * K_c);
 
 % Kalman filter with friction estimation - DO NOT MODIFY
 F_aug = [F_d G_d(:,1);zeros(1,6) 1];
@@ -67,10 +87,49 @@ f_m = [0;-0.025;0];  % Sensor fault vector (added to [y1;y2;y3])
 
 %% Virtual actuator
 % Failure in actuator 2
-% Do the desing first in continuous time
-va_eig_d = [];  % Discrete time eigenvalues
-va_eig = log(va_eig_d)/T_s;     % Continuous time eigenvalues
+% Do the design first in continuous time
+va_eig = [-0.3 + 50i, -0.3 - 50i, -0.6+20i, -0.6-20i, -1, -3, -2];     % Continuous time eigenvalues
+va_eig_d = exp(va_eig*T_s);  % Discrete time eigenvalues
 % Then discretise your VA
+
+A_aug = [A B(:,1);zeros(1,6) 0];
+
+B_f = B;
+B_f(:,2) = 0;
+
+B_aug = [B; 0, 0];
+B_f_aug = [B_f; 0, 0];
+
+G_f = G_d;
+G_f(:,2) = 0;
+
+G_f_aug = [G_f; 0, 0];
+
+if rank(B_f_aug) == rank([B_aug, B_f_aug])
+    disp('Perfect static matching for actuator fault');
+else
+    disp('Imperfect static matching for actuator fault');
+end
+
+if rank(ctrb(F_aug,G_f_aug)) == length(F_aug)
+    disp('Faulty system is controllable');
+else
+    disp('Faulty system is not controllable');
+end
+
+% Continuous time
+M = place(A_aug,B_f_aug,va_eig);
+A_D = A_aug-B_f_aug*M;
+N_D = pinv(B_f_aug)*B_aug;
+B_D = B_aug-B_f_aug*N_D;
+C_D = C_aug;
+
+% % Discrete time
+% M_d = place(F,G_f,va_eig_d);
+% F_D = F-G_f*M_d;
+% N_D_d = pinv(G_f)*G;
+% G_D = G-G_f*N_D_d;
+% C_D = C;
 
 %% Simulation for sensor fault (f_u = 0)
 simTime = 45;                   % Simulation duration in seconds
