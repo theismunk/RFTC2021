@@ -8,17 +8,17 @@ ST_input(2,:) = {'u_1\\left(t\\right)', 'u_2\\left(t\\right)'}; % LaTeX expressi
 
 
 % Measurements
-syms y_1(t) y_2(t) y_3(t) % Symbolic measurement declearation
-ST_meas(1,:) = {y_1, y_2, y_3}; % symbolic variable
-ST_meas(2,:) = {'y_1\\left(t\\right)', 'y_2\\left(t\\right)', 'y_3\\left(t\\right)'}; % LaTeX expression
+syms d(t) y_1(t) y_2(t) y_3(t) % Symbolic measurement declearation
+ST_meas(1,:) = {d, y_1, y_2, y_3}; % symbolic variable
+ST_meas(2,:) = {'d\\left(t\\right)', 'y_1\\left(t\\right)', 'y_2\\left(t\\right)', 'y_3\\left(t\\right)'}; % LaTeX expression
 
 
 % Unknowns
-syms d(t) theta_1(t) omega_1(t) theta_2(t) omega_2(t) theta_3(t) omega_3(t) ...
+syms theta_1(t) omega_1(t) theta_2(t) omega_2(t) theta_3(t) omega_3(t) ...
     dtheta_1(t) domega_1(t) dtheta_2(t) domega_2(t) dtheta_3(t) domega_3(t) % Symbolic unknowns declearation
-ST_unknowns(1,:) = {d, theta_1, omega_1, theta_2, omega_2, theta_3, omega_3, ...
+ST_unknowns(1,:) = {theta_1, omega_1, theta_2, omega_2, theta_3, omega_3, ...
     dtheta_1, domega_1, dtheta_2, domega_2, dtheta_3, domega_3}; % symbolic variable
-ST_unknowns(2,:) = {'d\\left(t\\right)'...
+ST_unknowns(2,:) = {...
     '\\theta_1\\left(t\\right)', '\\omega_1\\left(t\\right)', ...
 	'\\theta_2\\left(t\\right)','\\omega_2\\left(t\\right)',...
 	'\\theta_3\\left(t\\right)','\\omega_3\\left(t\\right)',...
@@ -98,7 +98,7 @@ sa_disp(ST_sys);
 ST_sys=sa_match(ST_sys,'rank');
 
 % Autogenerate pdf report - requires LaTeX to be installed
-sa_report(ST_sys,'q1_rank','pdf',true);
+sa_report(ST_sys,'q4_knowndist','pdf',true);
 disp('A report has been generated with the following results:')
 
 disp('Obtained matching:');
